@@ -113,6 +113,7 @@ async function fetchData() {
         ],
       },
       options: {
+        maintainAspectRatio: false, // Add this line
         scales: {
           x: {
             type: "category",
@@ -156,6 +157,7 @@ async function fetchData() {
         ],
       },
       options: {
+        maintainAspectRatio: false, // Add this line
         scales: {
           x: {
             type: "category",
@@ -199,6 +201,7 @@ async function fetchData() {
         ],
       },
       options: {
+        maintainAspectRatio: false, // Add this line
         scales: {
           x: {
             type: "category",
