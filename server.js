@@ -1,12 +1,18 @@
+// Load environment variables from .env file
+require('dotenv').config();
+
+
 const fetch = require("node-fetch").default;
 const express = require("express");
 const { Client } = require("pg");
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Connection details from ElephantSQL
-const connectionString =
-  "postgres://vieojjcc:9JXsf3IHhs4svPAzV5MpktYU5c-BV4H7@mel.db.elephantsql.com/vieojjcc";
+
+//Please Replace with ElephantSQL URL
+const connectionString = "postgres://vieojjcc:9JXsf3IHhs4svPAzV5MpktYU5c-BV4H7@mel.db.elephantsql.com/vieojjcc";
+
+
 const client = new Client({
   connectionString: connectionString,
   ssl: {
@@ -86,7 +92,7 @@ app.post("/receive-thingspeak-data", async (req, res) => {
   try {
     console.log("Fetching data from ThingSpeak...");
 
-    // Fetch data from ThingSpeak using built-in fetch
+    // REPLACE WITH THINKSPEAK API URL
     const apiUrl =
       "https://api.thingspeak.com/channels/2369829/feeds.json?api_key=75U1406FS2G9BFG8&results=10";
     const response = await fetch(apiUrl);

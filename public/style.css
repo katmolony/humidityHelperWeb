@@ -190,12 +190,13 @@ h2 {
 } */
 
 .chart-container {
+  text-align: center;
   background-color: #fff;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 10px;
   overflow: hidden;
-  width: 80%; /* Adjust as needed */
-  height: 30%;
+  width: auto; /* Adjust as needed */
+  height: 20%;
   margin: 20px;
 }
 

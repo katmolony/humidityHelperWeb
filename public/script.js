@@ -1,6 +1,7 @@
-// change the channel id and API
-const apiUrl =
-  "https://api.thingspeak.com/channels/2369829/feeds.json?api_key=75U1406FS2G9BFG8&results=10";
+// Replace all variable with your own data
+const apiUrl = "https://api.thingspeak.com/channels/${channelID}/feeds.json?api_key=${apiKey}&results=10";
+const channelID = "2369829"; // Replace with your ThingSpeak channel ID
+const apiKey = "75U1406FS2G9BFG8"; // Replace with your ThingSpeak API key
 
 fetch(apiUrl)
   .then((response) => response.json())
@@ -15,12 +16,10 @@ fetch(apiUrl)
   })
   .catch((error) => console.error("Error fetching data:", error));
 
-const channelID = "2369829"; // Replace with your ThingSpeak channel ID
-const apiKey = "75U1406FS2G9BFG8"; // Replace with your ThingSpeak API key
-//  const apiKey = process.env.API_KEY;
 
 // Function to fetch data from ThingSpeak
-async function fetchData(callback) {
+async function fetchData() {
+
   const urlField1 = `https://api.thingspeak.com/channels/${channelID}/fields/1.json?api_key=${apiKey}&results=10`;
   const urlField4 = `https://api.thingspeak.com/channels/${channelID}/fields/4.json?api_key=${apiKey}&results=10`;
 
@@ -109,7 +108,7 @@ async function fetchData(callback) {
         plugins: {
           title: {
             display: true,
-            text: "Current Temperature",
+            text: "Today's Temperature",
             font: {
               size: 16,
             },
@@ -117,20 +116,6 @@ async function fetchData(callback) {
         },
       },
     });
-
-    // Define a function to fetch data and update charts
-    async function fetchDataAndUpdateCharts() {
-      // Your existing code for fetching data and updating charts
-      // ...
-
-      console.log("Data fetched and charts updated at", new Date());
-    }
-
-    // Call the function immediately when the page loads
-    document.addEventListener("DOMContentLoaded", fetchDataAndUpdateCharts);
-
-    // Set up periodic data fetching every 5 minutes (300,000 milliseconds)
-    setInterval(fetchDataAndUpdateCharts, 30000);
 
     // Create a humidity chart using Chart.js
     const ctxHumidity = document
@@ -167,7 +152,7 @@ async function fetchData(callback) {
         plugins: {
           title: {
             display: true,
-            text: "Current Humidity",
+            text: "Today's Humidity",
             font: {
               size: 16,
             },
@@ -211,7 +196,7 @@ async function fetchData(callback) {
         plugins: {
           title: {
             display: true,
-            text: "Current Pressure",
+            text: "Today's Pressure",
             font: {
               size: 16,
             },
@@ -219,153 +204,10 @@ async function fetchData(callback) {
         },
       },
     });
-
-    // Calculate Dew Point
-    const dewPointField1 = valuesField1.map((temp, index) => {
-      const humidity = valuesHumidityField2[index];
-      return temp - (100 - humidity) / 5;
-    });
-
-    // Create a chart using Chart.js for Dew Point
-    const ctxDewPoint = document
-      .getElementById("dewPointChart")
-      .getContext("2d");
-    const dewPointChart = new Chart(ctxDewPoint, {
-      type: "line",
-      data: {
-        labels: timestamps
-          .filter((ts) => ts.isAfter(moment().subtract(6, "hours")))
-          .map((ts) => ts.unix()),
-        datasets: [
-          {
-            label: "Dew Point",
-            data: dewPointField1,
-            borderColor: "rgba(255, 206, 86, 1)",
-            borderWidth: 1,
-            fill: false,
-          },
-        ],
-      },
-      options: {
-        scales: {
-          x: {
-            type: "linear",
-            position: "bottom",
-            ticks: {
-              maxTicksLimit: 10,
-              callback: function (value, index, values) {
-                return moment.unix(value).utc().format("HH:mm:ss");
-              },
-            },
-          },
-        },
-        plugins: {
-          title: {
-            display: true,
-            text: "Last 6 Hours Dew Point",
-            font: {
-              size: 16,
-            },
-          },
-        },
-      },
-    });
-
-    // Indoor dew point calculation
-    // Calculate Risk of Indoor Humidity
-    const humidityRiskField2 = valuesHumidityField2.map((humidity) => {
-      if (humidity < 30) {
-        return "Low Humidity";
-      } else if (humidity > 60) {
-        return "High Humidity";
-      } else {
-        return "Normal Humidity";
-      }
-    });
-
-    // 1. Calculate Dew Point
-    const calculateDewPoint = (temperature, humidity) => {
-      return temperature - (100 - humidity) / 5;
-    };
-
-    const indoorDewPoint = calculateDewPoint(indoorTemperature, indoorHumidity);
-    const outdoorDewPoint = calculateDewPoint(
-      outdoorTemperature,
-      outdoorHumidity
-    );
-
-    // 2. Calculate Temperature Difference
-    const temperatureDifference = indoorTemperature - outdoorTemperature;
-
-    // 3. Compare Indoor Temperature and Dew Point
-    const isRiskOfCondensation = indoorTemperature <= indoorDewPoint;
-
-    // 4. Relative Humidity Threshold
-    const relativeHumidityThreshold = 60; // Adjust as needed
-    const isHighRelativeHumidity = indoorHumidity > relativeHumidityThreshold;
-
-    // 5. Temperature Difference Threshold
-    const temperatureDifferenceThreshold = 5; // Adjust as needed
-    const isExceedingTemperatureDifference =
-      temperatureDifference > temperatureDifferenceThreshold;
-
-    // // Get the HTML box element
-    const warningBox = document.getElementById("warningBox");
-
-    // 6. Alert System (Console Log for demonstration purposes, implement notifications or other alerts as needed)
-    if (
-      isRiskOfCondensation ||
-      isHighRelativeHumidity ||
-      isExceedingTemperatureDifference
-    ) {
-      console.log("Warning: Risk of condensation! Check indoor conditions.");
-    } else {
-      console.log("Indoor conditions are within acceptable limits.");
-    }
-    // Call the callback to signal that data fetching is complete
-    callback();
   } catch (error) {
     console.error("Error fetching data from ThingSpeak:", error);
   }
 }
-
-// // Function to update the warning box
-// function updateWarningBox() {
-//   // Get the HTML box element
-//   const warningBox = document.getElementById("warningBox");
-
-//   // Check conditions and update content
-//   if (
-//     isRiskOfCondensation ||
-//     isHighRelativeHumidity ||
-//     isExceedingTemperatureDifference
-//   ) {
-//     const warnings = [];
-//     if (isRiskOfCondensation) {
-//       warnings.push("Risk of condensation!");
-//     }
-//     if (isHighRelativeHumidity) {
-//       warnings.push("High relative humidity!");
-//     }
-//     if (isExceedingTemperatureDifference) {
-//       warnings.push("Exceeding temperature difference!");
-//     }
-
-//     // Display warnings in the box
-//     warningBox.innerHTML = `<strong>Warnings:</strong><br>${warnings.join(
-//       "<br>"
-//     )}`;
-//   } else {
-//     // Display everything is okay
-//     warningBox.innerHTML = "<strong>Everything is okay!</strong>";
-//   }
-// }
-
-// // Call the fetchData function when the page loads
-// document.addEventListener("DOMContentLoaded", async () => {
-//   await fetchData();
-//   updateWarningBox(); // Update the warning box after fetching data
-// });
 
 // Call the fetchData function when the page loads
 document.addEventListener("DOMContentLoaded", fetchData);
