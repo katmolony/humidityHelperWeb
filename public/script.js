@@ -1,38 +1,24 @@
-/*
-  This is your site JavaScript code - you can add interactivity!
-*/
-
-// Print a message in the browser's dev tools console each time the page loads
-// Use your menus or right-click / control-click and choose "Inspect" > "Console"
-console.log("Hello 🌎");
-
-// change the channel id and API
-const apiUrl = 'https://api.thingspeak.com/channels/2369829/feeds.json?api_key=75U1406FS2G9BFG8&results=10';
+// Replace all variable with your own data
+const apiUrl = "https://api.thingspeak.com/channels/${channelID}/feeds.json?api_key=${apiKey}&results=10";
+const channelID = "2369829"; // Replace with your ThingSpeak channel ID
+const apiKey = "75U1406FS2G9BFG8"; // Replace with your ThingSpeak API key
 
 fetch(apiUrl)
-    .then(response => response.json())
-    .then(data => {
-        // Process the data and update your charts
-        console.log(data);
-    })
-    .catch(error => console.error('Error fetching data:', error));
+  .then((response) => response.json())
+  .then((data) => {
+    // Process the data and update your charts
+    const indoorTemperature = data.feeds[0].field1; // Adjust the index if needed
+    const outdoorTemperature = data.feeds[0].field4; // Adjust the index if needed
+    const indoorHumidity = data.feeds[0].field2; // Adjust the index if needed
+    const outdoorHumidity = data.feeds[0].field5; // Adjust the index if needed
 
-/* 
-Make the "Click me!" button move when the visitor clicks it:
-- First add the button to the page by following the steps in the TODO 🚧
-*/
-const btn = document.querySelector("button"); // Get the button from the page
-if (btn) { // Detect clicks on the button
-  btn.onclick = function () {
-    // The 'dipped' class in style.css changes the appearance on click
-    btn.classList.toggle("dipped");
-  };
-}
+    console.log(data);
+  })
+  .catch((error) => console.error("Error fetching data:", error));
+
 
 // Function to fetch data from ThingSpeak
 async function fetchData() {
-  const channelID = "2369829"; // Replace with your ThingSpeak channel ID
-  const apiKey = "75U1406FS2G9BFG8"; // Replace with your ThingSpeak API key
 
   const urlField1 = `https://api.thingspeak.com/channels/${channelID}/fields/1.json?api_key=${apiKey}&results=10`;
   const urlField4 = `https://api.thingspeak.com/channels/${channelID}/fields/4.json?api_key=${apiKey}&results=10`;
@@ -226,16 +212,149 @@ async function fetchData() {
 // Call the fetchData function when the page loads
 document.addEventListener("DOMContentLoaded", fetchData);
 
+//function sending data to elephant SQL
+fetch("/receive-thingspeak-data", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+})
+  .then((response) => response.json())
+  .then((data) => console.log(data))
+  .catch((error) => console.error("Error:", error));
+document.addEventListener("DOMContentLoaded", function () {
+  // Function to fetch and display average temperature
+  async function fetchAverageTemperature() {
+    try {
+      const indoorResponse = await fetch("/average-temperature");
+      const outdoorResponse = await fetch("/average-outdoor-temperature");
+
+      const indoorData = await indoorResponse.json();
+      const outdoorData = await outdoorResponse.json();
+
+      if (indoorResponse.ok && outdoorResponse.ok) {
+        const averageIndoorTemperature = Number(
+          indoorData.averageTemperature
+        ).toFixed(1);
+        const averageOutdoorTemperature = Number(
+          outdoorData.averageOutdoorTemperature
+        ).toFixed(1);
+
+        document.getElementById(
+          "averageTemperature"
+        ).innerText = `Average Indoor: ${averageIndoorTemperature} °C`;
+        document.getElementById(
+          "averageOutdoorTemperature"
+        ).innerText = `Average Outdoor: ${averageOutdoorTemperature} °C`;
+      } else {
+        console.error(
+          "Error fetching average temperature:",
+          indoorData.error || outdoorData.error
+        );
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  }
+
+  // Fetch average temperature when the page is loaded
+  fetchAverageTemperature();
+
+  setInterval(fetchAverageTemperature, 300000); // Fetch every 5 minutes (300,000 milliseconds)
+
+  async function fetchAverageHumidity() {
+    try {
+      const indoorResponse = await fetch("/average-indoor-humidity");
+      const outdoorResponse = await fetch("/average-outdoor-humidity");
+
+      const indoorData = await indoorResponse.json();
+      const outdoorData = await outdoorResponse.json();
+
+      if (indoorResponse.ok && outdoorResponse.ok) {
+        const averageIndoorHumidity = Number(
+          indoorData.averageIndoorHumidity
+        ).toFixed(1);
+        const averageOutdoorHumidity = Number(
+          outdoorData.averageOutdoorHumidity
+        ).toFixed(1);
+
+        document.getElementById(
+          "averageHumidity"
+        ).innerText = `Average Indoor: ${averageIndoorHumidity} %`;
+        document.getElementById(
+          "averageOutdoorHumidity"
+        ).innerText = `Average Outdoor: ${averageOutdoorHumidity} %`;
+      } else {
+        console.error(
+          "Error fetching average humidity:",
+          indoorData.error || outdoorData.error
+        );
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  }
+
+  // Fetch average humidity when the page is loaded
+  fetchAverageHumidity();
+
+  setInterval(fetchAverageHumidity, 300000); // Fetch every 5 minutes (300,000 milliseconds)
+
+  async function fetchAverageDewPoint() {
+    try {
+      const indoorResponse = await fetch("/average-indoor-dew-point");
+      const outdoorResponse = await fetch("/average-outdoor-dew-point");
+
+      const indoorData = await indoorResponse.json();
+      const outdoorData = await outdoorResponse.json();
+
+      if (indoorResponse.ok && outdoorResponse.ok) {
+        const averageIndoorDewPoint = Number(
+          indoorData.averageIndoorDewPoint
+        ).toFixed(1);
+        const averageOutdoorDewPoint = Number(
+          outdoorData.averageOutdoorDewPoint
+        ).toFixed(1);
+
+        document.getElementById(
+          "averageDewPoint"
+        ).innerText = `Average Indoor: ${averageIndoorDewPoint} °C`;
+        document.getElementById(
+          "averageOutdoorDewPoint"
+        ).innerText = `Average Outdoor: ${averageOutdoorDewPoint} °C`;
+      } else {
+        console.error(
+          "Error fetching average dew point:",
+          indoorData.error || outdoorData.error
+        );
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  }
+
+  // Fetch average dew point when the page is loaded
+  fetchAverageDewPoint();
+
+  setInterval(fetchAverageDewPoint, 300000); // Fetch every 5 minutes
+});
+
+// Call the fetchData function when the page loads
+document.addEventListener("DOMContentLoaded", fetchData);
+
 // ----- GLITCH STARTER PROJECT HELPER CODE -----
 
 // Open file when the link in the preview is clicked
 let goto = (file, line) => {
   window.parent.postMessage(
-    { type: "glitch/go-to-line", payload: { filePath: file, line: line } }, "*"
+    { type: "glitch/go-to-line", payload: { filePath: file, line: line } },
+    "*"
   );
 };
 // Get the file opening button from its class name
 const filer = document.querySelectorAll(".fileopener");
 filer.forEach((f) => {
-  f.onclick = () => { goto(f.dataset.file, f.dataset.line); };
+  f.onclick = () => {
+    goto(f.dataset.file, f.dataset.line);
+  };
 });
